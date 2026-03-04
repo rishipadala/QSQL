@@ -30,9 +30,7 @@
     "typescript": "^5"
   },
   "description": "A real-time SQL editor/playground with full RDBMS functionality, powered by Supabase.",
-  "main": "index.js",
   "keywords": ["sql", "editor", "supabase", "database", "playground", "rdbms"],
   "author": "",
-  "license": "MIT",
-  "type": "commonjs"
+  "license": "MIT"
 }

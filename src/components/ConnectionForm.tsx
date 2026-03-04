@@ -43,27 +43,27 @@ export function ConnectionForm({ onConnected, initialCreds }: ConnectionFormProp
   };
 
   return (
-    <form onSubmit={handleConnect} className="space-y-5">
+    <form onSubmit={handleConnect} className="space-y-4">
       <div>
-        <label htmlFor="supabase-url" className="block text-sm font-medium text-foreground mb-2">
+        <label htmlFor="supabase-url" className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">
           Supabase Project URL
         </label>
         <div className="relative">
-          <Link2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Link2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/60" />
           <input
             id="supabase-url"
             type="url"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             placeholder="https://your-project.supabase.co"
-            className="w-full pl-10 pr-4 py-3 rounded-xl border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all"
+            className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-input bg-background text-foreground text-sm placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-ring/40 focus:border-primary/40 transition-all"
             required
           />
         </div>
       </div>
 
       <div>
-        <label htmlFor="anon-key" className="block text-sm font-medium text-foreground mb-2">
+        <label htmlFor="anon-key" className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">
           Anon / Public Key
         </label>
         <input
@@ -72,29 +72,29 @@ export function ConnectionForm({ onConnected, initialCreds }: ConnectionFormProp
           value={anonKey}
           onChange={(e) => setAnonKey(e.target.value)}
           placeholder="eyJhbGciOiJIUzI1NiIs..."
-          className="w-full px-4 py-3 rounded-xl border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all font-mono text-sm"
+          className="w-full px-4 py-2.5 rounded-lg border border-input bg-background text-foreground text-sm placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-ring/40 focus:border-primary/40 transition-all font-mono"
           required
         />
       </div>
 
       {status === 'error' && (
-        <div className="flex items-start gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/20">
+        <div className="flex items-start gap-2 p-3 rounded-lg bg-destructive/8 border border-destructive/15">
           <XCircle className="w-4 h-4 text-destructive mt-0.5 shrink-0" />
           <p className="text-sm text-destructive">{errorMsg}</p>
         </div>
       )}
 
       {status === 'success' && (
-        <div className="flex items-center gap-2 p-3 rounded-lg bg-success/10 border border-success/20">
+        <div className="flex items-center gap-2 p-3 rounded-lg bg-success/8 border border-success/15">
           <CheckCircle2 className="w-4 h-4 text-success" />
-          <p className="text-sm text-success">Connected successfully!</p>
+          <p className="text-sm text-success font-medium">Connected successfully!</p>
         </div>
       )}
 
       <button
         type="submit"
         disabled={testing || !url.trim() || !anonKey.trim()}
-        className="w-full py-3 px-4 rounded-xl bg-primary text-primary-foreground font-medium hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2"
+        className="w-full py-2.5 px-4 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-150 flex items-center justify-center gap-2 active:scale-[0.98]"
       >
         {testing ? (
           <>

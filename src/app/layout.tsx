@@ -11,7 +11,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Q SQL - Real-time SQL Editor & Playground",
+  title: "QSQL — Real-time SQL Editor & Playground",
   description: "An open-source real-time SQL editor with full RDBMS functionality, powered by Supabase.",
   keywords: ["sql", "editor", "supabase", "database", "playground", "rdbms", "open-source"],
 };
@@ -23,7 +23,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.variable} antialiased`}>
+      <body className={`${inter.variable} font-sans antialiased`}>
         <ThemeProvider>
           <div className="min-h-screen flex flex-col milky-bg">
             <Navbar />

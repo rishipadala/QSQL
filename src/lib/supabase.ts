@@ -122,12 +122,37 @@ export async function executeSQL(
     const duration = Math.round(performance.now() - start);
 
     if (error) {
-      // Fallback: try using the REST API directly for simple queries
-      return await executeSQLDirect(client, query, start);
+      return { data: null, error: error.message, rowCount: 0, duration };
     }
 
-    const rows = Array.isArray(data) ? data : data ? [data] : [];
-    return { data: rows, error: null, rowCount: rows.length, duration };
+    // Handle the response from exec_sql
+    if (data === null || data === undefined) {
+      return { data: null, error: null, rowCount: 0, duration };
+    }
+
+    // If the function returned a "success" object for non-SELECT statements
+    // e.g. { status: "success", message: "Query executed successfully" }
+    const isNonSelect = /^\s*(INSERT|UPDATE|DELETE|CREATE|ALTER|DROP|TRUNCATE|GRANT|REVOKE|BEGIN|COMMIT|ROLLBACK|SET|DO)\b/i.test(query);
+
+    if (!Array.isArray(data)) {
+      // Single object returned
+      const obj = data as Record<string, unknown>;
+      if (obj.status === 'success' && isNonSelect) {
+        // Non-SELECT statement succeeded — show as a success message row
+        return { data: [obj], error: null, rowCount: 1, duration };
+      }
+      if (obj.status === 'success' && !isNonSelect) {
+        // This is a SELECT but exec_sql fell into the EXCEPTION handler
+        // and executed it without returning rows. This means the exec_sql
+        // function is broken for this query. Try the direct approach.
+        return await executeSQLDirect(client, query, start);
+      }
+      // Otherwise it's a single-row result
+      return { data: [obj], error: null, rowCount: 1, duration };
+    }
+
+    // Array result — normal SELECT rows
+    return { data, error: null, rowCount: data.length, duration };
   } catch {
     return await executeSQLDirect(client, query, start);
   }
@@ -139,16 +164,14 @@ async function executeSQLDirect(
   startTime: number
 ): Promise<{ data: Record<string, unknown>[] | null; error: string | null; rowCount: number; duration: number }> {
   try {
-    // Use the Supabase SQL endpoint via fetch
-    const supabaseUrl = (client as unknown as { supabaseUrl: string }).supabaseUrl
-      || extractUrlFromClient(client);
-    const supabaseKey = (client as unknown as { supabaseKey: string }).supabaseKey
-      || extractKeyFromClient(client);
+    const creds = getCredentials();
+    const supabaseUrl = creds?.url || '';
+    const supabaseKey = creds?.anonKey || '';
 
     if (!supabaseUrl || !supabaseKey) {
       return {
         data: null,
-        error: 'Unable to extract Supabase credentials from client',
+        error: 'Unable to retrieve Supabase credentials',
         rowCount: 0,
         duration: Math.round(performance.now() - startTime),
       };
@@ -174,6 +197,19 @@ async function executeSQLDirect(
     }
 
     const result = await response.json();
+
+    // Same logic as main handler: detect false success for SELECT queries
+    const isNonSelect = /^\s*(INSERT|UPDATE|DELETE|CREATE|ALTER|DROP|TRUNCATE|GRANT|REVOKE|BEGIN|COMMIT|ROLLBACK|SET|DO)\b/i.test(query);
+
+    if (result && !Array.isArray(result) && result.status === 'success' && !isNonSelect) {
+      return {
+        data: null,
+        error: 'Your exec_sql function needs to be updated. Please run the updated CREATE FUNCTION from the Docs page in your Supabase SQL Editor, then try again.',
+        rowCount: 0,
+        duration,
+      };
+    }
+
     const rows = Array.isArray(result) ? result : result ? [result] : [];
     return { data: rows, error: null, rowCount: rows.length, duration };
   } catch (err) {
@@ -187,16 +223,7 @@ async function executeSQLDirect(
   }
 }
 
-function extractUrlFromClient(client: SupabaseClient): string {
-  // Try to get URL from credentials stored in localStorage
-  const creds = getCredentials();
-  return creds?.url || '';
-}
-
-function extractKeyFromClient(client: SupabaseClient): string {
-  const creds = getCredentials();
-  return creds?.anonKey || '';
-}
+// Credentials are now accessed directly via getCredentials() in executeSQLDirect
 
 export async function testConnection(creds: SupabaseCredentials): Promise<{ success: boolean; error?: string }> {
   try {
